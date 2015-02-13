@@ -160,6 +160,7 @@ class FastImage
   def initialize(uri, options={})
     @property = options[:type_only] ? :type : :size
     @timeout = options[:timeout] || DefaultTimeout
+    @custom_header = options[:custom_header] || {}
     @uri = uri
 
     if uri.respond_to?(:read)
@@ -210,7 +211,9 @@ class FastImage
 
   def fetch_using_http_from_parsed_uri
     setup_http
-    @http.request_get(@parsed_uri.request_uri, 'Accept-Encoding' => 'identity') do |res|
+    header = {'Accept-Encoding' => 'identity'}
+    header.merge!(@custom_header)
+    @http.request_get(@parsed_uri.request_uri, header) do |res|
       if res.is_a?(Net::HTTPRedirection) && @redirect_count < 4
         @redirect_count += 1
         begin
